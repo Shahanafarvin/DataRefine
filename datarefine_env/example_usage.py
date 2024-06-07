@@ -1,32 +1,37 @@
-# example_usage for handling missing value
+# example_usage.py
 
-from datarefine.handle_missing import MissingDataHandler
-from datarefine.handle_outliers import OutlierHandler
 import pandas as pd
-"""
-if __name__ == "__main__":
+from datarefine.handle_missing import MissingDataHandler
+
+def main():
+    """
+    Main function to demonstrate the usage of the MissingDataHandler class.
+
+    This function creates a sample DataFrame with missing values, initializes the
+    MissingDataHandler with the DataFrame, visualizes missing values before and after
+    imputation, and prints the DataFrame before and after imputation.
+    """
+    
+    # Create a sample DataFrame with missing values
     df = pd.DataFrame({
-        'A': [1, 2, None, None],
+        'A': [1, 2, None, 4],
         'B': [None, 2, 2, 4],
         'C': [1, None, 2, None]
     })
-    handler = MissingDataHandler(df)
-    handler.visualize_missing("missing_before_imputation.png")
-    print("Before Imputation:\n", df)
-    imputed_df = handler.impute(strategy='mean')
-    print("After Imputation:\n", imputed_df)
-    handler.visualize_missing("missing_after_imputation.png")
-    """
-    
-    # Example usage for handling outiers
-if __name__ == "__main__":
-    df = pd.DataFrame({
-        'A': [1, 2, 3, 4, 5, 100],
-        'B': [10, 20, 30, 40, 50, 200]
-    })
-    handler = OutlierHandler(df)
-    print("Before handling outliers:\n", df)
-    filtered_data, outliers = handler.handle_outliers('A', method='iqr')
-    print("Filtered data:\n", filtered_data)
-    print("Outliers:\n", outliers)
 
+    # Initialize the MissingDataHandler with the sample DataFrame
+    handler = MissingDataHandler(df)
+
+    # Visualize missing values before imputation
+    handler.visualize_missing(filename="before.png")
+    print("Before Imputation:\n", df)
+
+    # Impute missing values using the 'custom' strategy with fill_value=0
+    imputed_df = handler.impute(strategy='custom', fill_value=0)
+    print("After Imputation:\n", imputed_df)
+
+    # Visualize missing values after imputation
+    handler.visualize_missing(filename="after.png")
+
+if __name__ == "__main__":
+    main()
