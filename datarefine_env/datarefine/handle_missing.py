@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from sklearn.impute import SimpleImputer
 from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
+import missingno as msno
+
 
 class MissingDataHandler:
     """
@@ -28,28 +30,34 @@ class MissingDataHandler:
         """
         self.dataframe = dataframe
 
-    def visualize_missing(self, filename=None):
+    def visualize_missing(self, plot_type='heatmap', title="Missing Values", filename=None):
         """
-        Visualize the count of missing values in each column of the DataFrame.
+        Visualize the missing values in the DataFrame using the specified plot type.
 
         Parameters:
         ----------
+        plot_type : str
+            The type of plot to use ('heatmap', 'bar', 'matrix').
+        title : str
+            The title of the plot.
         filename : str, optional
             The name of the file to save the plot. If None, the plot is shown instead.
         """
-        plt.figure(figsize=(10, 6))
-        missing_counts = self.dataframe.isnull().sum()
-        sns.barplot(x=missing_counts.index, y=missing_counts.values)
+        plt.figure(figsize=(15, 10))
 
-        # Annotate each bar with the missing count
-        for column_index, missing_count in enumerate(missing_counts.values):
-            plt.text(column_index, missing_count, f'{missing_count}', ha='center', va='bottom')
+        if plot_type == 'heatmap':
+            sns.heatmap(self.dataframe.isnull(), cbar=False, cmap='viridis')
+        elif plot_type == 'bar':
+            missing_counts = self.dataframe.isnull().sum()
+            missing_counts.plot(kind='bar')
+        elif plot_type == 'matrix':
+            msno.matrix(self.dataframe)
+        else:
+            raise ValueError("Unsupported plot type")
 
-        plt.title("Missing Values Count per Column")
-        plt.xlabel("Columns")
-        plt.ylabel("Count of Missing Values")
-        plt.xticks(rotation=45)
-        
+        plt.title(title)
+        plt.tight_layout()
+
         if filename:
             plt.savefig(filename)
             plt.close()
@@ -95,5 +103,3 @@ class MissingDataHandler:
         self.visualize_missing()
         
         return self.dataframe
-    
-    
