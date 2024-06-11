@@ -30,7 +30,7 @@ class OutlierHandler:
         """
         self.dataframe = dataframe
 
-    def visualize_outliers(self, plot_type='boxplot', title="Outliers", filename=None):
+    def visualize_outliers(self, plot_type='box', title="Outliers", filename=None):
         """
         Visualize the outliers in the DataFrame using the specified plot type.
 

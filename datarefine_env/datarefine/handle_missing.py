@@ -7,7 +7,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
 import missingno as msno
-
+import numpy as np
+import os
 
 class MissingDataHandler:
     """
@@ -18,7 +19,7 @@ class MissingDataHandler:
     dataframe : pd.DataFrame
         The DataFrame containing missing data to be handled.
     """
-    
+
     def __init__(self, dataframe):
         """
         Initialize the MissingDataHandler with the provided DataFrame.
@@ -49,14 +50,15 @@ class MissingDataHandler:
             sns.heatmap(self.dataframe.isnull(), cbar=False, cmap='viridis')
         elif plot_type == 'bar':
             missing_counts = self.dataframe.isnull().sum()
-            missing_counts.plot(kind='bar')
+            ax = missing_counts.plot(kind='bar')
+            for container in ax.containers:
+                ax.bar_label(container)
         elif plot_type == 'matrix':
             msno.matrix(self.dataframe)
         else:
             raise ValueError("Unsupported plot type")
 
         plt.title(title)
-        plt.tight_layout()
 
         if filename:
             plt.savefig(filename)
@@ -64,16 +66,18 @@ class MissingDataHandler:
         else:
             plt.show()
 
-    def impute(self, strategy='mean', fill_value=None, **kwargs):
+    def impute_missing(self, strategy='mean', fill_value=None, dataframe=None, **kwargs):
         """
         Impute the missing values in the DataFrame using the specified strategy.
 
         Parameters:
-        ----------
+        -----------
         strategy : str
             The imputation strategy to use ('mean', 'median', 'most_frequent', 'predictive', or 'custom').
         fill_value : any, optional
-            The value to use for the 'custom' imputation strategy. Required if strategy is 'constant'.
+            The value to use for the 'custom' imputation strategy. Required if strategy is 'custom'.
+        dataframe : pd.DataFrame, optional
+            Specific DataFrame to impute missing values. If None, use the initialized DataFrame.
         kwargs : dict
             Additional arguments to pass to the IterativeImputer for 'predictive' strategy.
 
@@ -82,24 +86,24 @@ class MissingDataHandler:
         pd.DataFrame
             The DataFrame with missing values imputed.
         """
+        if dataframe is None:
+            dataframe = self.dataframe
+
+        # Replace None with np.nan
+        dataframe = dataframe.replace({None: np.nan})
+
         if strategy in ['mean', 'median', 'most_frequent']:
             imputer = SimpleImputer(strategy=strategy)
         elif strategy == 'predictive':
             imputer = IterativeImputer(**kwargs)
         elif strategy == 'custom':
             if fill_value is None:
-                raise ValueError("fill_value must be provided for constant imputation")
+                raise ValueError("fill_value must be provided for custom imputation")
             imputer = SimpleImputer(strategy='constant', fill_value=fill_value)
         else:
             raise ValueError("Unsupported imputation strategy")
 
-        # Visualize missing data before imputation
-        self.visualize_missing()
+        imputed_data = imputer.fit_transform(dataframe)
+        dataframe = pd.DataFrame(imputed_data, columns=dataframe.columns)
 
-        imputed_data = imputer.fit_transform(self.dataframe)
-        self.dataframe = pd.DataFrame(imputed_data, columns=self.dataframe.columns)
-        
-        # Visualize missing data after imputation
-        self.visualize_missing()
-        
-        return self.dataframe
+        return dataframe

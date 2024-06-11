@@ -23,15 +23,15 @@ def main():
     handler = OutlierHandler(df)
 
     # Visualize outliers before handling
-    handler.visualize_outliers(title="Outliers Before Handling",filename="befor_handling_outliers.png")
+    handler.visualize_outliers(plot_type='box',title="Outliers Before Handling",filename="befor_handling_outliers.png")
     print("Before Handling Outliers:\n", df)
 
     # Handle outliers using the 'remove' method with 'zscore' detection method
     cleaned_df = handler.handle_outliers(method='remove', detection_method='zscore', threshold=1.0)
-    print("After Handling Outliers (Remove Method):\n", cleaned_df)
+    print("After Handling Outliers :\n", cleaned_df)
 
     # Visualize outliers after handling
-    handler.visualize_outliers(title="Outliers After Handling",filename="after_handling_outliers.png")
+    handler.visualize_outliers(plot_type='box',title="Outliers After Handling",filename="after_handling_outliers.png")
 
 if __name__ == "__main__":
     main()
