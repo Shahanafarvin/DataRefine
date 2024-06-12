@@ -30,7 +30,7 @@ DataRefine is a Python package designed to streamline the data cleaning process 
 #### handle_outliers.py
 - Updated the code to remove some errors.
 
-#### version 5:(11/06/2024)
+### version 5:(11/06/2024)
 #### __init__.py
 - Updated the code to include another modules called data_quality_assessment.py
 #### data_quality_assessment.py
