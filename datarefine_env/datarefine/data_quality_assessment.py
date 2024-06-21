@@ -1,116 +1,103 @@
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
-import scipy.stats as stats
+from rich.console import Console
+from rich.table import Table
+from rich import box
 
 class DataQualityAssessment:
     """
-    A class used to assess data quality in a DataFrame.
+    Class for assessing the quality of a DataFrame, including summary statistics
+    and quality metrics such as missing values and outliers.
 
-    Attributes:
+    Attributes
     ----------
     dataframe : pd.DataFrame
-        The DataFrame to be assessed for data quality.
+        The DataFrame to be assessed.
+
+    Methods
+    -------
+    summary_statistics():
+        Computes and prints summary statistics for the DataFrame.
+    quality_metrics():
+        Computes and prints quality metrics for the DataFrame.
     """
-    
+
     def __init__(self, dataframe):
         """
-        Initialize the DataQualityAssessment with the provided DataFrame.
+        Initializes the DataQualityAssessment class with the given DataFrame.
 
-        Parameters:
+        Parameters
         ----------
         dataframe : pd.DataFrame
-            The DataFrame to be assessed for data quality.
+            The DataFrame to be assessed.
         """
-        self.dataframe = dataframe
+        self.dataframe = dataframe.select_dtypes(include=['number'])  # Select only numeric columns
 
     def summary_statistics(self):
         """
-        Calculate summary statistics for each numeric variable in the DataFrame.
+        Computes and prints summary statistics for the DataFrame, including skewness and kurtosis.
 
-        Returns:
+        Returns
         -------
         pd.DataFrame
-            A DataFrame containing summary statistics.
+            A DataFrame containing the summary statistics.
         """
-        numeric_df = self.dataframe.select_dtypes(include=[np.number])
-        stats_df = numeric_df.describe().transpose()
-        stats_df['skewness'] = numeric_df.skew()
-        stats_df['kurtosis'] = numeric_df.kurt()
+        # Get basic statistics (mean, std, min, 25%, 50%, 75%, max)
+        stats_df = self.dataframe.describe().T
+        # Calculate skewness and add it to the statistics DataFrame
+        stats_df['skewness'] = self.dataframe.skew()
+        # Calculate kurtosis and add it to the statistics DataFrame
+        stats_df['kurtosis'] = self.dataframe.kurtosis()
+
+        # Print the summary statistics
+        console = Console()
+        table = Table(title="Summary Statistics", box=box.ROUNDED)
+        table.add_column("Statistic", style="bold blue")  # Change heading color to blue
+        table.add_column("Count", justify="right", style="green")  # Change value color to green
+        table.add_column("Mean", justify="right", style="green")
+        table.add_column("Std", justify="right", style="green")
+        table.add_column("Min", justify="right", style="green")
+        table.add_column("25%", justify="right", style="green")
+        table.add_column("50%", justify="right", style="green")
+        table.add_column("75%", justify="right", style="green")
+        table.add_column("Max", justify="right", style="green")
+        table.add_column("Skewness", justify="right", style="green")
+        table.add_column("Kurtosis", justify="right", style="green")
+        for index, row in stats_df.iterrows():
+            table.add_row(index, *[f"{value:.2f}" if pd.notnull(value) else "NaN" for value in row])
+        console.print(table)
+
         return stats_df
 
     def quality_metrics(self):
         """
-        Compute quality metrics for the DataFrame.
+        Computes and prints quality metrics for the DataFrame, such as the number of missing values
+        and the number of outliers.
 
-        Returns:
+        Returns
         -------
-        dict
-            A dictionary containing quality metrics.
+        pd.DataFrame
+            A DataFrame containing the quality metrics.
         """
-        metrics = {
-            'missing_percentage': self.dataframe.isnull().mean() * 100,
-            'num_outliers': self._count_outliers(),
-            'data_distribution': self.summary_statistics()
-        }
-        return metrics
+        # Calculate the number of missing values for each column
+        missing_values = self.dataframe.isnull().sum()
+        # Calculate the number of outliers (values above the 99th percentile) for each column
+        outliers = (self.dataframe > self.dataframe.quantile(0.99)).sum()
+        # Combine the missing values and outliers into a DataFrame
+        data_quality = pd.DataFrame({
+            'missing_values': missing_values,
+            'outliers': outliers
+        })
 
-    def _count_outliers(self):
-        """
-        Count the number of outliers in each numeric column using the IQR method.
+        # Print the quality metrics
+        console = Console()
+        table = Table(title="Quality Metrics", box=box.ROUNDED)
+        table.add_column("Metric", style="bold blue")  # Change heading color to blue
+        table.add_column("Missing Values", justify="right", style="green")  # Change value color to green
+        table.add_column("Outliers", justify="right", style="green")
+        for index, row in data_quality.iterrows():
+            table.add_row(index, *[str(value) for value in row])
+        console.print(table)
 
-        Returns:
-        -------
-        pd.Series
-            A Series containing the number of outliers for each column.
-        """
-        numeric_df = self.dataframe.select_dtypes(include=[np.number])
-        Q1 = numeric_df.quantile(0.25)
-        Q3 = numeric_df.quantile(0.75)
-        IQR = Q3 - Q1
-        is_outlier = ((numeric_df < (Q1 - 1.5 * IQR)) | (numeric_df > (Q3 + 1.5 * IQR)))
-        return is_outlier.sum()
+        return data_quality
 
-    def visualize_quality(self, plot_type='histogram', filename=None):
-        """
-        Generate visualizations for data quality assessment.
 
-        Parameters:
-        ----------
-        plot_type : str
-            The type of plot to use ('histogram', 'density', 'qqplot').
-        filename : str, optional
-            The name of the file to save the plot. If None, the plot is shown instead.
-        """
-        num_columns = self.dataframe.select_dtypes(include=[np.number]).columns
-        for column in num_columns:
-            plt.figure(figsize=(10, 6))
-
-            if plot_type == 'histogram':
-                sns.histplot(self.dataframe[column], kde=True)
-                plt.title(f'Histogram of {column}')
-                plt.xlabel(column)
-                plt.ylabel('Frequency')
-                for p in plt.gca().patches:
-                    plt.gca().annotate(f'{p.get_height()}', (p.get_x() + p.get_width() / 2., p.get_height()), 
-                                       ha='center', va='center', fontsize=10, color='black', xytext=(0, 10),
-                                       textcoords='offset points')
-            elif plot_type == 'density':
-                sns.kdeplot(self.dataframe[column], fill=True)
-                plt.title(f'Density Plot of {column}')
-                plt.xlabel(column)
-                plt.ylabel('Density')
-            elif plot_type == 'qqplot':
-                stats.probplot(self.dataframe[column], dist="norm", plot=plt)
-                plt.title(f'QQ Plot of {column}')
-            else:
-                raise ValueError("Unsupported plot type")
-
-            plt.tight_layout()
-
-            if filename:
-                plt.savefig(f'{filename}_{column}.png')
-                plt.close()
-            else:
-                plt.show()
