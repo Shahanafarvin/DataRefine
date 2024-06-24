@@ -1,5 +1,3 @@
-# datarefine/handle_missing.py
-
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -8,7 +6,9 @@ from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
 import missingno as msno
 import numpy as np
-import os
+from rich.console import Console
+from rich.table import Table
+from rich import box
 
 class MissingDataHandler:
     """
@@ -30,6 +30,7 @@ class MissingDataHandler:
             The DataFrame to be processed for missing data.
         """
         self.dataframe = dataframe
+        self.console = Console()
 
     def visualize_missing(self, plot_type='heatmap', title="Missing Values", filename=None):
         """
@@ -106,4 +107,38 @@ class MissingDataHandler:
         imputed_data = imputer.fit_transform(dataframe)
         dataframe = pd.DataFrame(imputed_data, columns=dataframe.columns)
 
+        self._print_table(dataframe, title=f"DataFrame after imputation ({strategy.capitalize()} strategy)")
         return dataframe
+
+    def _print_table(self, df, title):
+        """
+        Print the DataFrame using rich.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The DataFrame to be printed.
+        title : str
+            The title of the table.
+        """
+        table = Table(title=title, box=box.ROUNDED, title_style="bold blue")
+        table.add_column("Index", style="bold blue")
+        
+        for col in df.columns:
+            # Determine the appropriate style based on the column type
+            if pd.api.types.is_numeric_dtype(df[col]):
+                table.add_column(col, justify="right", style="green")
+            else:
+                table.add_column(col, justify="right", style="blue")
+        
+        for i, row in df.iterrows():
+            values = []
+            for col in df.columns:
+                if pd.api.types.is_numeric_dtype(df[col]):
+                    values.append(f"{row[col]:.2f}")
+                else:
+                    values.append(f"{row[col]}")
+            table.add_row(str(i), *values)
+
+        self.console.print(table)
+

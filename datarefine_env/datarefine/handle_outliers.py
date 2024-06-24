@@ -1,5 +1,3 @@
-# datarefine/handle_outliers.py
-
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -8,6 +6,9 @@ from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
+from rich.console import Console
+from rich.table import Table
+from rich import box
 
 class OutlierHandler:
     """
@@ -29,6 +30,7 @@ class OutlierHandler:
             The DataFrame to be processed for outliers.
         """
         self.dataframe = dataframe
+        self.console = Console()
 
     def visualize_outliers(self, plot_type='box', title="Outliers", filename=None):
         """
@@ -116,6 +118,7 @@ class OutlierHandler:
         else:
             raise ValueError("Unsupported outlier detection method")
         
+        self.print_table(outliers, title=method.capitalize() + " Outliers")
         return outliers
 
     def handle_outliers(self, method='remove', detection_method='zscore', threshold=3.0, **kwargs):
@@ -159,4 +162,27 @@ class OutlierHandler:
         else:
             raise ValueError("Unsupported outlier handling method")
 
+        self.print_table(self.dataframe, title=f"DataFrame after handling outliers ({method.capitalize()} method)")
         return self.dataframe
+
+    def print_table(self, df, title):
+        """
+        Print the DataFrame or outliers DataFrame using rich.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The DataFrame to be printed.
+        title : str
+            The title of the table.
+        """
+        table = Table(title=title, box=box.ROUNDED, title_style="bold blue")
+        table.add_column("Index", style="bold blue")
+        for col in df.columns:
+            table.add_column(col, justify="right", style="green" if df.equals(self.dataframe) else "red")
+
+        for i, row in df.iterrows():
+            table.add_row(str(i), *[f"{value:.2f}" for value in row])
+
+        self.console.print(table)
+

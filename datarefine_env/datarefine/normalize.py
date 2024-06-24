@@ -1,10 +1,10 @@
-# datarefine/normalize.py
-
 import pandas as pd
 import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler, PowerTransformer
+import matplotlib.pyplot as plt
+from rich.console import Console
+from rich.table import Table
+from rich import box
 
 class DataNormalizer:
     """
@@ -20,23 +20,24 @@ class DataNormalizer:
         """
         Initialize the DataNormalizer with the provided DataFrame.
 
-        Parameters:
+        Parameters
         ----------
         dataframe : pd.DataFrame
             The DataFrame to be normalized and transformed.
         """
-        self.dataframe = dataframe
+        self.dataframe = dataframe.select_dtypes(include=['number'])  # Select only numeric columns
+        self.console = Console()
 
     def normalize(self, method='minmax'):
         """
         Normalize the DataFrame using the specified method.
 
-        Parameters:
+        Parameters
         ----------
         method : str
             The normalization method to use ('minmax', 'zscore', 'robust').
 
-        Returns:
+        Returns
         -------
         pd.DataFrame
             The normalized DataFrame.
@@ -51,18 +52,19 @@ class DataNormalizer:
             raise ValueError("Unsupported normalization method")
 
         normalized_df = pd.DataFrame(scaler.fit_transform(self.dataframe), columns=self.dataframe.columns)
+        self._print_dataframe(normalized_df, f"Normalized DataFrame ({method.capitalize()})")
         return normalized_df
 
     def transform(self, method='log'):
         """
         Transform the DataFrame using the specified method.
 
-        Parameters:
+        Parameters
         ----------
         method : str
             The transformation method to use ('log', 'sqrt', 'boxcox').
 
-        Returns:
+        Returns
         -------
         pd.DataFrame
             The transformed DataFrame.
@@ -78,13 +80,14 @@ class DataNormalizer:
         else:
             raise ValueError("Unsupported transformation method")
 
+        self._print_dataframe(transformed_df, f"Transformed DataFrame ({method.capitalize()})")
         return transformed_df
 
     def visualize_distribution(self, plot_type='hist', title="Distribution", filename=None):
         """
         Visualize the distribution of the DataFrame using specified plot type.
 
-        Parameters:
+        Parameters
         ----------
         plot_type : str
             The type of plot to use ('hist', 'box', 'density').
@@ -96,15 +99,15 @@ class DataNormalizer:
         plt.figure(figsize=(15, 10))
 
         if plot_type == 'hist':
-            self.dataframe.hist(bins=30, layout=(1, len(self.dataframe.columns)), figsize=(15, 10))
+            self.dataframe.hist(bins=30, layout=(1, len(self.dataframe.columns)), figsize=(15, 10), color='skyblue', edgecolor='black')
         elif plot_type == 'box':
-            self.dataframe.plot(kind='box', subplots=True, layout=(1, len(self.dataframe.columns)), figsize=(15, 10))
+            self.dataframe.plot(kind='box', subplots=True, layout=(1, len(self.dataframe.columns)), figsize=(15, 10), color='orange', patch_artist=True)
         elif plot_type == 'density':
-            self.dataframe.plot(kind='density', subplots=True, layout=(1, len(self.dataframe.columns)), figsize=(15, 10))
+            self.dataframe.plot(kind='density', subplots=True, layout=(1, len(self.dataframe.columns)), figsize=(15, 10), linewidth=2)
         else:
             raise ValueError("Unsupported plot type")
 
-        plt.suptitle(title)
+        plt.suptitle(title, fontsize=16, color='blue')
         plt.tight_layout(rect=[0, 0, 1, 0.96])
 
         if filename:
@@ -112,3 +115,25 @@ class DataNormalizer:
             plt.close()
         else:
             plt.show()
+
+    def _print_dataframe(self, df, title):
+        """
+        Print the DataFrame using rich.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The DataFrame to be printed.
+        title : str
+            The title of the table.
+        """
+        table = Table(title=title, box=box.ROUNDED, title_style="bold blue")
+        table.add_column("Index", style="bold blue")
+        for col in df.columns:
+            table.add_column(col, justify="right", style="green")
+
+        for i, row in df.iterrows():
+            table.add_row(str(i), *[f"{value:.2f}" for value in row])
+
+        self.console.print(table)
+
