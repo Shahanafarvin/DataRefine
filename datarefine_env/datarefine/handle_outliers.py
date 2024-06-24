@@ -12,7 +12,7 @@ from rich import box
 
 class OutlierHandler:
     """
-    A class used to detect and handle outliers in a DataFrame.
+    A class used to detect and handle outliers in numeric columns of a DataFrame.
 
     Attributes:
     ----------
@@ -29,7 +29,7 @@ class OutlierHandler:
         dataframe : pd.DataFrame
             The DataFrame to be processed for outliers.
         """
-        self.dataframe = dataframe
+        self.dataframe = dataframe.select_dtypes(include=[np.number])  # Select only numeric columns
         self.console = Console()
 
     def visualize_outliers(self, plot_type='box', title="Outliers", filename=None):
@@ -50,7 +50,7 @@ class OutlierHandler:
         if plot_type == 'box':
             sns.boxplot(data=self.dataframe)
         elif plot_type == 'hist':
-            for column in self.dataframe.select_dtypes(include=[np.number]).columns:
+            for column in self.dataframe.columns:
                 sns.histplot(self.dataframe[column], kde=True)
                 plt.title(f'{title}: {column}')
                 if filename:
@@ -59,7 +59,7 @@ class OutlierHandler:
                 else:
                     plt.show()
         elif plot_type == 'scatter':
-            num_columns = self.dataframe.select_dtypes(include=[np.number]).columns
+            num_columns = self.dataframe.columns
             if len(num_columns) < 2:
                 raise ValueError("Scatter plot requires at least two numerical columns")
             sns.scatterplot(x=self.dataframe[num_columns[0]], y=self.dataframe[num_columns[1]])
@@ -77,7 +77,7 @@ class OutlierHandler:
 
     def detect_outliers(self, method='zscore', threshold=3.0, **kwargs):
         """
-        Detect outliers in the DataFrame using the specified method.
+        Detect outliers in the numeric columns of the DataFrame using the specified method.
 
         Parameters:
         ----------
@@ -123,7 +123,7 @@ class OutlierHandler:
 
     def handle_outliers(self, method='remove', detection_method='zscore', threshold=3.0, **kwargs):
         """
-        Handle the outliers in the DataFrame using the specified method.
+        Handle the outliers in the numeric columns of the DataFrame using the specified method.
 
         Parameters:
         ----------
@@ -141,7 +141,7 @@ class OutlierHandler:
         pd.DataFrame
             The DataFrame with outliers handled.
         """
-        # Detect outliers
+        # Detect outliers only in numeric columns
         outliers = self.detect_outliers(method=detection_method, threshold=threshold, **kwargs)
         
         # Handle outliers based on the specified method
@@ -179,10 +179,9 @@ class OutlierHandler:
         table = Table(title=title, box=box.ROUNDED, title_style="bold blue")
         table.add_column("Index", style="bold blue")
         for col in df.columns:
-            table.add_column(col, justify="right", style="green" if df.equals(self.dataframe) else "red")
+            table.add_column(col.capitalize(), justify="right", style="green" if df.equals(self.dataframe) else "red")
 
         for i, row in df.iterrows():
             table.add_row(str(i), *[f"{value:.2f}" for value in row])
 
         self.console.print(table)
-
