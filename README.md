@@ -36,6 +36,21 @@ DataRefine is a Python package designed to streamline the data cleaning process 
 #### data_quality_assessment.py
 - This file primarily includes functions for generating summary statistics and quality metrics for a DataFrame, accompanied by visualizations like histograms and density plots to aid in understanding the data's distribution and quality characteristics effectively.
 
+### version 6:(21/06/2024)
+#### data_quality_assessment.py
+- this module updated to avoid visualisations,added rich library feature to use in layout of terminal output
+
+### version 7:(24/06/2024)
+- All other modules are updated to get same feature of rich library in data_quality_assessment.py
+
+### version 8:(24/06/24)
+#### handle_outliers.py
+-this module is changed to handle numerical columns only
+
+### version 9:(25/06/24)
+#### visualizer.py
+- This DataVisualizer module is designed for comprehensive exploratory data analysis (EDA) through a variety of visualizations. It includes methods for plotting histograms, boxplots, scatter plots, pairplots, heatmaps, bar plots, count plots, violin plots, line plots, pie charts, donut charts, density plots, and matrix plots, leveraging the matplotlib and seaborn libraries to facilitate insightful data exploration and presentation
+
 
 
 
