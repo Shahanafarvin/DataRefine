@@ -2,7 +2,7 @@
 # <img src="DataRefine/scripts/drlogo.jpeg" alt="DataRefine logo" width="200"/>
 
 ![PyPI](https://img.shields.io/pypi/v/DataRefine?color=#2e86c1&label=pypi&logo=pypi)
-![License](https://img.shields.io/github/LICENSE/Shahanafarvin/DataRefine)
+![License](https://img.shields.io/github/license/Shahanafarvin/DataRefine)
 ![Python Versions](https://img.shields.io/pypi/pyversions/DataRefine)
 
 **DataRefine** is a Python package designed for data cleaning with interactive output and visualizations. It offers a streamlined interface to help users detect and handle missing values, outliers, perform normalization and transformation, and assess data quality. The package also integrates interactive visualizations to make it easy for users to understand their data, along with an interface for an enhanced user experience.
