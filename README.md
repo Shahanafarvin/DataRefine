@@ -69,7 +69,7 @@ It's recommended to install `DataRefine` in a virtual environment to manage depe
 Once the virtual environment is activated, you can install `DataRefine` using `pip`:
 
 ```bash
-pip install datarefine==1.0
+pip install DataRefine
 ```
 ## Quick Start
 
