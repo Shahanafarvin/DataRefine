@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='DataRefiner',  
+    name='DataRefine',  
     version='1.0',  
-    description='A no-code solution for performing data cleaning like misssing value imputation,outlier handling,normalisation,transformationand quality check with an intuitive interface for interactive DataFrame manipulation and easy CSV export.',  
+    description='A no-code solution for performing data cleaning like misssing value imputation,outlier handling,normalisation,transformation and quality check with an intuitive interface for interactive DataFrame manipulation and easy CSV export.',  
     long_description=open('README.md').read(),  
     long_description_content_type='text/markdown', 
     author='Shahana Farvin', 
@@ -23,7 +23,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'DataRefine = datarefine.run_app:main',
+            'DataRefine = DataRefine.scripts.run_app:main',
         ],
     },
 

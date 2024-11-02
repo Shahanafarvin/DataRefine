@@ -1,10 +1,8 @@
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import IsolationForest
-from sklearn.neighbors import LocalOutlierFactor
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
 import plotly.graph_objs as go
+import plotly.express as px
+from sklearn.impute import SimpleImputer
 
 class OutlierHandler:
     """
@@ -39,7 +37,7 @@ class OutlierHandler:
         self.original_dataframe = dataframe.copy()
         self.dataframe = dataframe.select_dtypes(include=[np.number])
     
-    def detect_outliers(self, method='zscore', threshold=3.0, **kwargs):
+    def detect_outliers(self, method='iqr', threshold=1.5):
         """
         Detect outliers in the numeric columns of the dataframe.
         
@@ -47,7 +45,7 @@ class OutlierHandler:
         ----------
         method : str, default='zscore'
             The method to use for outlier detection. Options include:
-            'zscore', 'iqr', 'isolation_forest', 'lof'.
+            'zscore', 'iqr'.
         threshold : float, default=3.0
             The threshold to use for outlier detection (applicable for 'zscore' and 'iqr' methods).
         
@@ -71,20 +69,6 @@ class OutlierHandler:
             Q3 = self.dataframe.quantile(0.75)
             IQR = Q3 - Q1
             outliers = ((self.dataframe < (Q1 - threshold * IQR)) | (self.dataframe > (Q3 + threshold * IQR)))
-        elif method == 'isolation_forest':
-            iso_forest = IsolationForest(**kwargs)
-            outlier_predictions = iso_forest.fit_predict(self.dataframe)
-            outliers = pd.DataFrame(outlier_predictions, index=self.dataframe.index, columns=['outlier'])
-            outliers['outlier'] = outliers['outlier'] == -1
-        elif method == 'lof':
-            scaler = StandardScaler()
-            scaled_data = scaler.fit_transform(self.dataframe)
-            if 'n_neighbors' not in kwargs:
-                kwargs['n_neighbors'] = min(20, len(self.dataframe) - 1)
-            lof = LocalOutlierFactor(**kwargs)
-            lof_scores = lof.fit_predict(scaled_data)
-            outliers = pd.DataFrame(lof_scores, index=self.dataframe.index, columns=['outlier'])
-            outliers['outlier'] = outliers['outlier'] == -1
         else:
             raise ValueError("Unsupported outlier detection method")
         
@@ -93,7 +77,7 @@ class OutlierHandler:
 
         return outliers, outlier_counts
 
-    def handle_outliers(self, method='remove', detection_method='zscore', threshold=3.0, **kwargs):
+    def handle_outliers(self, method='remove', detection_method='zscore', threshold=3.0):
         """
         Handle outliers in the dataframe using the specified method.
         
@@ -122,7 +106,7 @@ class OutlierHandler:
             If an unsupported handling method is passed.
         """
         # Detect outliers
-        outliers, outlier_counts = self.detect_outliers(method=detection_method, threshold=threshold, **kwargs)
+        outliers, outlier_counts = self.detect_outliers(method=detection_method, threshold=threshold)
         
         if method == 'remove':
             # Remove rows containing outliers
@@ -148,32 +132,8 @@ class OutlierHandler:
         self.original_dataframe.update(self.dataframe)
 
         # Detect new outliers after handling
-        new_outliers, new_outlier_counts = self.detect_outliers(method=detection_method, threshold=threshold, **kwargs)
+        new_outliers, new_outlier_counts = self.detect_outliers(method=detection_method, threshold=threshold)
 
         return self.original_dataframe, outlier_counts, new_outlier_counts
 
-    def plot_outliers(self, outlier_counts):
-        """
-        Plot the count of outliers for each column using Plotly.
-        
-        Parameters:
-        ----------
-        outlier_counts : dict
-            A dictionary with the count of outliers for each column.
-        
-        Returns:
-        -------
-        fig : plotly.graph_objs.Figure
-            A Plotly bar chart showing outlier counts.
-        """
-        fig = go.Figure()
-        for column, count in outlier_counts.items():
-            fig.add_trace(go.Bar(x=[column], y=[count], name=column))
-        
-        fig.update_layout(
-            title="Outlier Counts per Column",
-            xaxis_title="Columns",
-            yaxis_title="Outlier Count",
-            barmode='group'
-        )
-        return fig
+    
