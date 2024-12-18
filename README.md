@@ -69,7 +69,7 @@ It's recommended to install `DataRefine` in a virtual environment to manage depe
 Once the virtual environment is activated, you can install `DataRefine` using `pip`:
 
 ```bash
-pip install datarefine==1.0
+pip install DataRefine
 ```
 ## Quick Start
 
@@ -96,6 +96,9 @@ Start cleaning your data!
     - View real-time visualizations of the changes.
     - Download the cleaned dataset when finished.
     - For a detailed video walkthrough of the app's features and functionality, check out our YouTube demo.
+
+[![Video Title](https://img.youtube.com/vi/FOnMv-vnURI/0.jpg)](https://youtu.be/FOnMv-vnURI?si=XfqJ9IhgLfOjJHh4)
+
 
 ## Requirements
 
